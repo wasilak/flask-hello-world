@@ -1,10 +1,14 @@
 import socket
 import logging
 import sys
+import os
 from flask import Flask, jsonify, request, session
 
 app = Flask(__name__)
-app.secret_key = "cne287fg8237hc38igochh98cy^TR^&%R&T*&G"
+
+app.config['SECRET_KEY'] = os.environ.get("SECRET_KEY", default="")
+app.config['SESSION_COOKIE_NAME'] = os.environ.get(
+    "SESSION_COOKIE_NAME", default="session")
 
 app.logger.addHandler(logging.StreamHandler(sys.stdout))
 app.logger.setLevel(logging.DEBUG)
@@ -12,7 +16,9 @@ app.logger.setLevel(logging.DEBUG)
 
 @app.route('/health')
 def health():
-    return "OK", 200
+    return jsonify({
+        "status": "OK"
+    }), 200
 
 
 @app.route('/')
@@ -36,7 +42,20 @@ def hello_world():
         "counter": session["counter"],
         "host": socket.getfqdn(),
         "hostnames": session["hostnames"],
-        "request": str(request),
+        "request": {
+            "method": request.method,
+            "url": request.url,
+            "base_url": request.base_url,
+            "url_charset": request.url_charset,
+            "url_root": request.url_root,
+            "url_rule": str(request.url_rule),
+            "host_url": request.host_url,
+            "host": request.host,
+            "script_root": request.script_root,
+            "path": request.path,
+            "full_path": request.full_path,
+            "args": request.args,
+        },
     }
 
     app.logger.debug(debug_msg)
