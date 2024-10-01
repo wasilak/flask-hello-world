@@ -2,13 +2,21 @@ import socket
 import logging
 import sys
 import os
+import string
+import secrets
 from flask import Flask, jsonify, request, session
+
+
+def generate_secret_key(length=38):
+    alphabet = string.ascii_letters + string.digits + string.punctuation
+    return ''.join(secrets.choice(alphabet) for _ in range(length))
+
 
 app = Flask(__name__)
 
-app.config['SECRET_KEY'] = os.environ.get("SECRET_KEY", default="")
+app.config['SECRET_KEY'] = os.environ.get("SECRET_KEY", default=generate_secret_key())
 app.config['SESSION_COOKIE_NAME'] = os.environ.get(
-    "SESSION_COOKIE_NAME", default="session")
+    "SESSION_COOKIE_NAME", default=f"session-flask-hello-world-{generate_secret_key(length=4)}")
 
 app.logger.addHandler(logging.StreamHandler(sys.stdout))
 app.logger.setLevel(logging.DEBUG)
@@ -46,7 +54,6 @@ def hello_world():
             "method": request.method,
             "url": request.url,
             "base_url": request.base_url,
-            "url_charset": request.url_charset,
             "url_root": request.url_root,
             "url_rule": str(request.url_rule),
             "host_url": request.host_url,
